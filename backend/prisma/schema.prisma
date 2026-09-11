@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TournamentStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+}
+
+enum TournamentFormat {
+  GROUP_KNOCKOUT
+  SINGLE_TABLE
+}
+
+enum MatchStatus {
+  SCHEDULED
+  COMPLETED
+}
+
+enum StageType {
+  GROUP
+  PRE_QUARTERFINAL
+  QUARTERFINAL
+  SEMIFINAL
+  FINAL
+  THIRD_PLACE
+}
+
+enum LegFormat {
+  SINGLE
+  TWO_LEG
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  tournaments Tournament[]
+}
+
+model Tournament {
+  id          Int              @id @default(autoincrement())
+  name        String
+  description String?
+  format      TournamentFormat
+  status      TournamentStatus @default(UPCOMING)
+
+  startDate DateTime?
+  endDate   DateTime?
+
+  groupSize              Int?
+  playersPerGroupQualify Int?
+
+  knockoutLegFormat LegFormat @default(SINGLE)
+  thirdPlaceMatch   Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  isVisible Boolean @default(true)
+
+  createdById Int
+  createdBy   User @relation(fields: [createdById], references: [id])
+
+  players TournamentPlayer[]
+  groups  Group[]
+  stages  Stage[]
+}
+
+model Player {
+  id        Int      @id @default(autoincrement())
+  name      String
+  gamerTag  String?
+  image     String?
+  createdAt DateTime @default(now())
+
+  tournaments TournamentPlayer[]
+}
+
+model TournamentPlayer {
+  id           Int @id @default(autoincrement())
+  tournamentId Int
+  playerId     Int
+
+  seed       Int?
+  eliminated Boolean @default(false)
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  groupMember GroupMember?
+
+  @@unique([tournamentId, playerId])
+}
+
+model Group {
+  id           Int @id @default(autoincrement())
+  name         String
+  tournamentId Int
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  members GroupMember[]
+  matches Match[]
+
+  @@unique([tournamentId, name])
+}
+
+model GroupMember {
+  id                 Int @id @default(autoincrement())
+  groupId            Int
+  tournamentPlayerId Int
+
+  group            Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  tournamentPlayer TournamentPlayer @relation(fields: [tournamentPlayerId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, tournamentPlayerId])
+  @@unique([tournamentPlayerId])
+}
+
+model Stage {
+  id           Int       @id @default(autoincrement())
+  name         String
+  type         StageType
+  order        Int
+  tournamentId Int
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  matches Match[]
+
+  @@unique([tournamentId, type])
+}
+
+model Match {
+  id Int @id @default(autoincrement())
+
+  stageId Int
+  groupId Int?
+
+  roundNumber Int?
+  matchNumber Int?
+
+  homePlayerId Int?
+  awayPlayerId Int?
+
+  homeScore Int?
+  awayScore Int?
+
+  status MatchStatus @default(SCHEDULED)
+
+  isTwoLegged Boolean @default(false)
+
+  winnerNextMatchId Int?
+  loserNextMatchId  Int?
+
+  scheduledAt DateTime?
+  completedAt DateTime?
+
+  stage Stage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  group Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  legs MatchLeg[]
+
+  @@index([stageId])
+  @@index([groupId])
+}
+
+model MatchLeg {
+  id Int @id @default(autoincrement())
+
+  matchId Int
+  legNumber Int
+
+  homeScore Int?
+  awayScore Int?
+
+  status MatchStatus @default(SCHEDULED)
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, legNumber])
+}
