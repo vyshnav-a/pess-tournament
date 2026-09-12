@@ -1,8 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 
-const prisma = require("./lib/prisma");
-
 const knockoutRoutes =
   require("./routes/knockoutRoutes");
 
@@ -23,7 +21,6 @@ const tournamentRoutes =
 
 const authRoutes =
   require("./routes/authRoutes");
-
 
 const app = express();
 
@@ -70,25 +67,6 @@ app.get("/api/health", (req, res) => {
     success: true,
     message: "eFootball Tournament API is running"
   });
-});
-
-app.get("/api/test-db", async (req, res) => {
-  try {
-    const tournaments = await prisma.tournament.findMany();
-
-    res.json({
-      success: true,
-      count: tournaments.length,
-      tournaments
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: "Database connection failed"
-    });
-  }
 });
 
 const PORT = process.env.PORT || 5000;
