@@ -36,7 +36,9 @@ function Home() {
 
           {/* Main Heading */}
           <h2 className="text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
-            Welcome to the
+            Welcome to the <br></br>
+            UK's
+      
             <span className="block text-blue-500">
               eFootball Tournament Hub
             </span>
@@ -67,6 +69,7 @@ function Home() {
             </Link>
 
           </div>
+
 
           {/* Features */}
           <div className="mt-16 grid gap-4 sm:grid-cols-3">
@@ -101,11 +104,18 @@ function Home() {
               </p>
             </div>
 
+           
+
+
           </div>
 
         </div>
 
       </main>
+
+      <footer className="border-t border-slate-800 py-5 text-center text-sm text-slate-500">
+        © {new Date().getFullYear()} eFootball Tournament Hub · Developed by Vyshnav A
+      </footer>
 
     </div>
   );
